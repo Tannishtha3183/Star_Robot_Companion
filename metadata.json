@@ -1,0 +1,6 @@
+{
+  "name": "Star - Animated Robot Companion",
+  "description": "An interactive, animated premium AI companion named Star that features fluid SVG gestures, ambient lighting, and rich response states powered by Gemini.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
