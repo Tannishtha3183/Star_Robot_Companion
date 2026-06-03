@@ -1,13 +1,304 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Star.AI - Premium Robot Companion</title>
+  <link rel="stylesheet" href="/style.css">
+  <!-- Load Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="theme-dark">
+  <div id="root-container">
+    <!-- Immersive Atmospheric Backdrop -->
+    <div id="ambient-light"></div>
 
+    <!-- Top Navigation Bar -->
+    <nav id="app-header">
+      <div class="brand-wrapper">
+        <div class="brand-indicator">
+          <div class="brand-indicator-inner"></div>
+        </div>
+        <span class="brand-title">STAR.AI</span>
+        <span class="brand-badge">Companion Cores</span>
+      </div>
+
+      <div class="nav-controls">
+        <div class="nav-links">
+          <span>Architecture</span>
+          <span>Intelligence</span>
+        </div>
+        
+        <!-- Controls -->
+        <button id="btn-toggle-mute" class="btn-nav" title="Toggle sound effects">
+          <i data-lucide="volume-2"></i>
+          <span>Sfx</span>
+        </button>
+
+        <button id="btn-toggle-theme" class="btn-nav" title="Switch color theme">
+          <i data-lucide="moon"></i>
+          <span>Dark</span>
+        </button>
+
+        <button id="btn-clear-chat" class="btn-nav btn-nav-primary" title="Start new conversation">
+          <i data-lucide="plus"></i>
+          <span>New Chat</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Core Workspace Grid -->
+    <main id="app-workspace">
+      <!-- LEFT COLUMN: Physical Pedestal & Robot Companion -->
+      <section id="companion-dock-column">
+        <div id="star-pedestal">
+          <!-- Subtle Branding Stamp -->
+          <div class="pedestal-stamp">
+            <div class="pedestal-ping"></div>
+            <span id="pedestal-stamp-text" class="pedestal-stamp-text">Meadow Edition</span>
+          </div>
+
+          <!-- Dynamic Vector Canvas -->
+          <div id="companion-container">
+            <!-- Shadow drop element -->
+            <div id="star-drop-shadow"></div>
+
+            <!-- SVG Vector Model -->
+            <svg id="star-vector" viewBox="0 0 320 400" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- LED Glow Filters -->
+                <filter id="glow-filter" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="3.5" result="blur" />
+                  <feComponentTransfer in="blur" result="brightBlur">
+                    <feFuncA type="linear" slope="2.5" />
+                  </feComponentTransfer>
+                  <feMerge>
+                    <feMergeNode in="brightBlur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+
+                <!-- Ceramic base light shader -->
+                <radialGradient id="ceramic-highlight" cx="30%" cy="30%" r="70%">
+                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85" />
+                  <stop offset="50%" stop-color="#f3f4f6" />
+                  <stop offset="100%" stop-color="#d1d5db" />
+                </radialGradient>
+
+                <!-- Brushed Metal Stalk shaders -->
+                <linearGradient id="brushed-metal" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#f3f4f6" />
+                  <stop offset="25%" stop-color="#e5e7eb" />
+                  <stop offset="50%" stop-color="#9ca3af" />
+                  <stop offset="75%" stop-color="#cbd5e1" />
+                  <stop offset="100%" stop-color="#64748b" />
+                </linearGradient>
+
+                <!-- Visor glass shader -->
+                <linearGradient id="dark-visor" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#1e293b" />
+                  <stop offset="100%" stop-color="#0f172a" />
+                </linearGradient>
+
+                <!-- Reactor core base gradient -->
+                <radialGradient id="core-glow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="var(--glow-color, #06b6d4)" stop-opacity="0.8" />
+                  <stop offset="70%" stop-color="var(--glow-color, #06b6d4)" stop-opacity="0.2" />
+                  <stop offset="100%" stop-color="var(--glow-color, #06b6d4)" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+
+              <!-- ================= THRUSTER PLUME ================= -->
+              <g id="base-stabilizer-flame">
+                <ellipse id="base-flame-ellipse" cx="160" cy="335" rx="20" ry="12" fill="none" stroke="var(--glow-color, #06b6d4)" stroke-width="3" opacity="0.35" filter="url(#glow-filter)" />
+                <circle id="base-flame-circle" cx="160" cy="338" r="5" fill="var(--glow-color, #06b6d4)" opacity="0.7" filter="url(#glow-filter)" />
+              </g>
+
+              <!-- ================= TORSO / CHASSIS ================= -->
+              <g id="torso-group">
+                <!-- Base Ceramic Shell -->
+                <path d="M 115 250 C 105 285, 115 320, 160 330 C 205 320, 215 285, 205 250 Z" fill="url(#ceramic-highlight)" stroke="#e5e7eb" stroke-width="1" />
+                
+                <!-- Torso Shadows & Highlights -->
+                <path id="torso-shadow" d="M 115 250 C 105 285, 115 320, 160 330 C 205 320, 215 285, 205 250 Z" fill="#000000" opacity="0.15" />
+                <path id="torso-highlight" d="M 115 250 C 105 285, 115 320, 160 330 C 205 320, 215 285, 205 250 Z" fill="#ffffff" opacity="0.3" />
+                
+                <!-- Joint seams -->
+                <path d="M 160 250 L 160 328" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" opacity="0.75" />
+                
+                <!-- Sockets -->
+                <rect x="94" y="246" width="12" height="24" rx="5" fill="#4b5563" />
+                <rect x="214" y="246" width="12" height="24" rx="5" fill="#4b5563" />
+                <path d="M 144 322 L 176 322 L 168 335 L 152 335 Z" fill="#374151" stroke="#4b5563" stroke-width="1" />
+
+                <!-- Star Core click target -->
+                <g id="chest-touch-zone" class="clickable-node" style="cursor: pointer;">
+                  <circle cx="160" cy="285" r="22" fill="url(#core-glow)" />
+                  <circle id="torso-core-ring" cx="160" cy="285" r="11" fill="none" stroke="var(--glow-color, #06b6d4)" stroke-width="3.5" opacity="0.8" filter="url(#glow-filter)" />
+                  <circle cx="160" cy="285" r="4" fill="#ffffff" />
+                </g>
+              </g>
+
+              <!-- ================= FLOATING HEAD ================= -->
+              <g id="head-group">
+                <!-- Stalk & Antenna -->
+                <g id="antenna-touch-zone" class="clickable-node" style="cursor: pointer;">
+                  <line x1="160" y1="80" x2="160" y2="40" stroke="url(#brushed-metal)" stroke-width="5.5" stroke-linecap="round" />
+                  <circle cx="160" cy="55" r="5" fill="#6b7280" />
+                  <g id="antenna-bulb-group">
+                    <circle id="antenna-glowing-tip" cx="160" cy="36" r="8" fill="var(--glow-color, #06b6d4)" opacity="0.8" filter="url(#glow-filter)" />
+                    <circle cx="160" cy="36" r="3.5" fill="#ffffff" />
+                  </g>
+                </g>
+
+                <!-- Ear sensors -->
+                <g id="ears-touch-zone" class="clickable-node" style="cursor: pointer;">
+                  <rect x="74" y="125" width="8" height="38" rx="4" fill="#6b7280" />
+                  <rect x="238" y="125" width="8" height="38" rx="4" fill="#6b7280" />
+                  <circle cx="77" cy="144" r="3" fill="var(--glow-color, #06b6d4)" opacity="0.65" filter="url(#glow-filter)" />
+                  <circle cx="243" cy="144" r="3" fill="var(--glow-color, #06b6d4)" opacity="0.65" filter="url(#glow-filter)" />
+                </g>
+
+                <!-- Visor Head Base -->
+                <g id="visor-touch-zone" class="clickable-node" style="cursor: pointer;">
+                  <!-- Main Head Globe -->
+                  <rect x="80" y="90" width="160" height="110" rx="54" fill="url(#ceramic-highlight)" stroke="#e5e7eb" stroke-width="1.5" />
+                  <rect id="head-shadow" x="80" y="90" width="160" height="110" rx="54" fill="#000000" opacity="0.12" />
+                  <rect id="head-highlight" x="80" y="90" width="160" height="110" rx="54" fill="#ffffff" opacity="0.3" />
+                  
+                  <!-- Dark glass lens visor -->
+                  <rect x="94" y="110" width="132" height="70" rx="35" fill="url(#ceramic-highlight)" style="filter: brightness(0.12);" />
+                  
+                  <!-- Visor Eyes Slot (JS populates details here) -->
+                  <g id="eyes-led-container"></g>
+                </g>
+
+                <!-- Visor Glass reflections -->
+                <path d="M 103 118 Q 160 102 217 118" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.16" stroke-linecap="round" />
+                <ellipse id="visor-glass-glow" cx="160" cy="132" rx="20" ry="10" fill="#ffffff" opacity="0.12" style="filter: blur(4px);" />
+              </g>
+
+              <!-- Neck Link socket -->
+              <g id="neck-link">
+                <rect x="146" y="214" width="28" height="24" rx="4" fill="#374151" stroke="#4b5563" stroke-width="1" />
+                <ellipse cx="160" cy="216" rx="14" ry="4" fill="#1f2937" />
+              </g>
+            </svg>
+          </div>
+
+          <!-- Status Indicator Label -->
+          <div id="star-status-seal">
+            <h2>Star</h2>
+            <p id="star-status-desc">• REAL-TIME TRACKING ACTIVE •</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: Interactive Chat console & Session Database -->
+      <section id="companion-chat-column">
+        <div id="chat-playground" class="state-idle">
+          <!-- Playground Title Header -->
+          <div class="chat-header">
+            <div class="chat-status-indicator">
+              <div class="status-orbs">
+                <span class="status-orb-pulse"></span>
+                <span class="status-orb-solid"></span>
+              </div>
+              <div class="status-text">
+                <h4 id="companion-version-seal">Star v4.0 Prime</h4>
+                <p id="companion-state-seal">idle state — expression: neutral</p>
+              </div>
+            </div>
+
+            <!-- Workspace Actions -->
+            <div class="chat-actions">
+              <button id="btn-toggle-sidebar" class="btn-header-action active-toggle" title="Toggle history menu">
+                <i data-lucide="history" style="width: 14px; height: 14px;"></i>
+                <span>History (1)</span>
+              </button>
+
+              <button id="btn-sidebar-new" class="btn-header-action" style="background-color: var(--accent-color); color: var(--bg-color); border: none; font-weight: bold;" title="New dialogue log">
+                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                <span>New Chat</span>
+              </button>
+
+              <div class="badge-realtime">
+                <i data-lucide="sparkles" class="badge-sparkle" style="width: 12px; height: 12px;"></i>
+                <span>Real Time Intelligence</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Central Workspace Canvas: Sidebar + Scroll Area -->
+          <div class="chat-workspace">
+            <!-- Sidebar: Sessions Database -->
+            <aside id="sidebar-sessions">
+              <div class="sidebar-title">
+                <i data-lucide="folder-open" style="width: 14px; height: 14px;"></i>
+                <span>Saved Chats</span>
+              </div>
+              
+              <!-- Dialogue logs rows -->
+              <div id="sessions-list" class="sessions-list"></div>
+
+              <!-- Sidebar Clear controls -->
+              <div class="sidebar-footer">
+                <button id="btn-clear-history" class="btn-clear-history" title="Clear all local chat data">
+                  <i data-lucide="trash" style="width: 14px; height: 14px;"></i>
+                  <span>Clear All History</span>
+                </button>
+              </div>
+            </aside>
+
+            <!-- Active Messages Panel -->
+            <div class="chat-canvas">
+              <!-- Scrollable messages container -->
+              <div id="messages-container"></div>
+
+              <!-- Suggested prompt tags -->
+              <div id="suggestions-panel" class="suggestions-panel">
+                <span class="suggestions-title">Ask Star To:</span>
+                <div id="suggestions-list" class="suggestions-list">
+                  <!-- Suggestion chips will be injected here -->
+                </div>
+              </div>
+
+              <!-- Error Toast -->
+              <div id="error-alert" class="error-alert" style="display: none;">
+                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                <span id="error-message">Unable to connect to server.</span>
+              </div>
+
+              <!-- Input text form field -->
+              <form id="prompt-field-form" class="chat-form">
+                <div class="input-container">
+                  <input type="text" id="prompt-input-box" class="prompt-input" placeholder="Ask Star something..." required autocomplete="off">
+                  <button type="submit" id="btn-prompt-submit" class="btn-send">
+                    <i data-lucide="send" style="width: 14px; height: 14px;"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer Area -->
+    <footer id="app-footer">
+      <div class="footer-branding">
+        <p class="footer-title">Hello, I'm Star.</p>
+        <p class="footer-desc">Your premium robotic companion designed for intelligent automation, absolute physical reactivity, and boundless curiosity.</p>
+      </div>
+
+      <div class="footer-meta">
+        <p id="footer-edition" class="footer-edition">Moonlit Meadow</p>
+        <p id="footer-calibration" class="footer-calibration">Calibrated with Moonlit Meadow</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Load script coordinating app logic -->
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

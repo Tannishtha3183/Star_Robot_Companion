@@ -2,7 +2,6 @@ import express from "express";
 import path from "path";
 import dotenv from "dotenv";
 import { GoogleGenAI, Type } from "@google/genai";
-import { createServer as createViteServer } from "vite";
 
 dotenv.config();
 
@@ -12,8 +11,7 @@ const PORT = 3000;
 app.use(express.json());
 
 // Initialize Gemini SDK with User-Agent header for telemetry
-// Using lazy loading in case development env needs key to be set from secret
-let aiClient: GoogleGenAI | null = null;
+let aiClient = null;
 
 function getGeminiClient() {
   if (!aiClient) {
@@ -53,10 +51,10 @@ app.post("/api/chat", async (req, res) => {
     }
 
     // Formulate a structured multi-turn conversation payload for Gemini using the history parameter
-    const contentsPayload: any[] = [];
+    const contentsPayload = [];
     if (history && Array.isArray(history)) {
       // Map prior message items to correct roles and JSON configuration schemas
-      history.forEach((msg: any) => {
+      history.forEach((msg) => {
         if (msg.sender === "user") {
           contentsPayload.push({
             role: "user",
@@ -128,7 +126,7 @@ Always return your response as a valid JSON object matching the requested schema
           response = resObj;
           break;
         }
-      } catch (err: any) {
+      } catch (err) {
         lastError = err;
         console.log(`Model status for '${modelToTry}': high load, trying fallback`);
       }
@@ -146,7 +144,7 @@ Always return your response as a valid JSON object matching the requested schema
     let parsedResponse;
     try {
       parsedResponse = JSON.parse(response.text.trim());
-    } catch (parseError: any) {
+    } catch (parseError) {
       console.log("JSON parse exception:", response.text);
       const jsonMatch = response.text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -169,7 +167,7 @@ Always return your response as a valid JSON object matching the requested schema
     }
 
     return res.json(parsedResponse);
-  } catch (error: any) {
+  } catch (error) {
     console.log("Operational update in route logic");
     return res.json({
       text: `An unexpected operational error occurred (Code: 500). Please try again or touch my frame for manual feed!`,
@@ -179,27 +177,14 @@ Always return your response as a valid JSON object matching the requested schema
   }
 });
 
-async function main() {
-  // Vite middleware setup
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
+// Serve static frontend files from workspace root
+app.use(express.static(path.join(process.cwd(), ".")));
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-  });
-}
+// Catch-all route to serve index.html for single-page routing
+app.get("*", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "index.html"));
+});
 
-main().catch((err) => {
-  console.error("Failed to start server", err);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });

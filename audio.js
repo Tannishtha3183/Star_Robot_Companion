@@ -1,10 +1,10 @@
 // Premium high-fidelity Web Audio synthesized sound effects for Star Companion
-let audioCtx: AudioContext | null = null;
+let audioCtx = null;
 let isMuted = false;
 
 function getAudioContext() {
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
   if (audioCtx.state === "suspended") {
     audioCtx.resume();
