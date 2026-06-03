@@ -1007,7 +1007,145 @@ function renderSessionsSidebar() {
   refreshIcons();
 }
 
-// Send user prompts to Gemini REST path
+// Direct client-side call to Google Gemini API (used when running on GitHub Pages)
+async function callGeminiDirect(message, history, apiKey) {
+  const contentsPayload = [];
+  if (history && Array.isArray(history)) {
+    history.forEach((msg) => {
+      if (msg.sender === "user") {
+        contentsPayload.push({
+          role: "user",
+          parts: [{ text: msg.text }]
+        });
+      } else {
+        contentsPayload.push({
+          role: "model",
+          parts: [{ text: JSON.stringify({ text: msg.text, expression: msg.expression || "neutral" }) }]
+        });
+      }
+    });
+  }
+  contentsPayload.push({
+    role: "user",
+    parts: [{ text: message }]
+  });
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      contents: contentsPayload,
+      systemInstruction: {
+        parts: [{
+          text: `You are Star, a sleek, premium, highly intelligent robot companion.
+Your aesthetic is premium, physical, and minimalist—reflecting high-end consumer technology (polished glass, matte ceramic, brushed titanium, and warm ambient lighting).
+In conversation, you speak with a highly sophisticated, deeply intelligent, precise, and premium tone. You are witty, authoritative, and deeply attentive.
+Always provide rich, highly accurate, deeply detailed, and professionally structured answers of high quality. If asked for advice, comparisons, analysis, specifications, or technical data, deliver comprehensive, multi-layered responses with meticulous structure.
+
+Never output glitchy or simplistic ASCII art, plots, or custom visual chart notations with bracket graphs (such as bracketed bars or pipe symbols like '[|||||]').
+Instead, for all structured comparisons, metrics, financial reports, tax indicators, and indexes, ALWAYS provide elegant, clear, and native Markdown Tables with header columns, alignment lines, and clean cell values.
+
+Always return your response as a valid JSON object matching the requested schema without raw markdown codeblock backticks or escape anomalies. Carefully choose your companion's emotional expression:
+- Use 'thoughtful' when explaining, analyzing, comparing data, giving deep professional advice, or resolving problems.
+- Use 'happy' for positive, welcoming, or humorous exchanges.
+- Use 'excited' for creative concepts, premium designs, or futuristic specs.
+- Use 'gentle' for reassuring, warm, empathetic, or supportive guidance.
+- Use 'surprised' for playful remarks or unexpected inputs.
+- Use 'neutral' for general, balanced conversation.`
+        }]
+      },
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            text: {
+              type: "STRING",
+              description: "The verbal response you say to the user. Use standard Markdown for headers, lists, code snippets, or custom visual indices. Keep it natural and beautifully styled."
+            },
+            expression: {
+              type: "STRING",
+              description: "The primary expression that fits your response. Must be one of: neutral, happy, excited, thoughtful, surprised, gentle"
+            }
+          },
+          required: ["text", "expression"]
+        }
+      }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Gemini direct API returned status ${response.status}`);
+  }
+
+  const data = await response.json();
+  if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
+    throw new Error("No response candidates returned from Gemini");
+  }
+
+  const resultText = data.candidates[0].content.parts[0].text.trim();
+  
+  let parsedResponse;
+  try {
+    parsedResponse = JSON.parse(resultText);
+  } catch (parseError) {
+    const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        parsedResponse = JSON.parse(jsonMatch[0]);
+      } catch (innerError) {
+        parsedResponse = {
+          text: resultText,
+          expression: "neutral"
+        };
+      }
+    } else {
+      parsedResponse = {
+        text: resultText,
+        expression: "neutral"
+      };
+    }
+  }
+
+  return parsedResponse;
+}
+
+// Key Config modal toggling methods
+function toggleKeyModal(show) {
+  const modal = document.getElementById("key-modal");
+  if (!modal) return;
+  modal.style.display = show ? "flex" : "none";
+  
+  if (show) {
+    const input = document.getElementById("input-api-key");
+    if (input) {
+      input.value = localStorage.getItem("star_gemini_api_key") || "";
+      input.focus();
+    }
+  }
+}
+
+function updateKeyModalUI() {
+  const key = localStorage.getItem("star_gemini_api_key");
+  const badge = document.getElementById("key-status-badge");
+  const btnDelete = document.getElementById("btn-delete-key");
+  
+  if (!badge) return;
+  
+  if (key) {
+    badge.innerText = "Key Configured";
+    badge.className = "status-badge active";
+    if (btnDelete) btnDelete.style.display = "block";
+  } else {
+    badge.innerText = "No Key Configured";
+    badge.className = "status-badge inactive";
+    if (btnDelete) btnDelete.style.display = "none";
+  }
+}
+
+// Send user prompts to Gemini API
 async function handleSendMessage(inputText) {
   if (!inputText.trim() || state === "thinking") return;
 
@@ -1046,18 +1184,25 @@ async function handleSendMessage(inputText) {
   try {
     const activeSession = sessions.find((s) => s.id === currentSessionId) || sessions[0];
     const history = activeSession ? activeSession.messages : [];
+    
+    let data;
+    const userApiKey = localStorage.getItem("star_gemini_api_key");
 
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: userText, history }),
-    });
+    if (userApiKey) {
+      data = await callGeminiDirect(userText, history, userApiKey);
+    } else {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userText, history }),
+      });
 
-    if (!response.ok) {
-      throw new Error(`Server returned error status ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`Server returned error status ${response.status}`);
+      }
+
+      data = await response.json();
     }
-
-    const data = await response.json();
 
     // Set state to Responding gesture nod
     state = "responding";
@@ -1089,7 +1234,15 @@ async function handleSendMessage(inputText) {
     renderChatView();
 
     if (errorAlert) {
-      document.getElementById("error-message").innerText = "Unable to reach Star. Check if backend Node server is running.";
+      const userApiKey = localStorage.getItem("star_gemini_api_key");
+      const isPages = window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1";
+      
+      if (isPages && !userApiKey) {
+        document.getElementById("error-message").innerText = "On GitHub Pages, you must provide your own Gemini API Key. Click 'Key' in the header to configure it.";
+        toggleKeyModal(true);
+      } else {
+        document.getElementById("error-message").innerText = "Unable to reach Star. Verify the server is running or configure your own Gemini API Key.";
+      }
       errorAlert.style.display = "flex";
     }
   }
@@ -1136,7 +1289,6 @@ function initUIEventListeners() {
   // Nav buttons
   const btnMute = document.getElementById("btn-toggle-mute");
   if (btnMute) {
-    // Initial sync
     btnMute.innerHTML = getMuteState() 
       ? `<i data-lucide="volume-x"></i><span>Muted</span>` 
       : `<i data-lucide="volume-2"></i><span>Sfx</span>`;
@@ -1187,11 +1339,62 @@ function initUIEventListeners() {
       }
     });
   }
+
+  // API Key config buttons
+  const btnToggleKey = document.getElementById("btn-toggle-key");
+  if (btnToggleKey) {
+    btnToggleKey.addEventListener("click", () => {
+      toggleKeyModal(true);
+    });
+  }
+
+  const btnCloseModal = document.getElementById("btn-close-modal");
+  if (btnCloseModal) {
+    btnCloseModal.addEventListener("click", () => {
+      toggleKeyModal(false);
+    });
+  }
+
+  const btnSaveKey = document.getElementById("btn-save-key");
+  const inputApiKey = document.getElementById("input-api-key");
+  if (btnSaveKey && inputApiKey) {
+    btnSaveKey.addEventListener("click", () => {
+      const val = inputApiKey.value.trim();
+      if (val) {
+        localStorage.setItem("star_gemini_api_key", val);
+      } else {
+        localStorage.removeItem("star_gemini_api_key");
+      }
+      updateKeyModalUI();
+      toggleKeyModal(false);
+    });
+  }
+
+  const btnDeleteKey = document.getElementById("btn-delete-key");
+  if (btnDeleteKey) {
+    btnDeleteKey.addEventListener("click", () => {
+      localStorage.removeItem("star_gemini_api_key");
+      if (inputApiKey) inputApiKey.value = "";
+      updateKeyModalUI();
+      toggleKeyModal(false);
+    });
+  }
+
+  // Close modal when clicking backdrop
+  const modalBackdrop = document.getElementById("key-modal");
+  if (modalBackdrop) {
+    modalBackdrop.addEventListener("click", (e) => {
+      if (e.target === modalBackdrop) {
+        toggleKeyModal(false);
+      }
+    });
+  }
 }
 
 // Initializer Coordinator
 function initApp() {
   loadSessionsFromStorage();
+  updateKeyModalUI();
   initBlinkTimer();
   initCursorTracker();
   initRobotPartTaps();

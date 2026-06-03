@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Star.AI - Premium Robot Companion</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="style.css">
   <!-- Load Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -30,6 +30,11 @@
         </div>
         
         <!-- Controls -->
+        <button id="btn-toggle-key" class="btn-nav" title="Configure Gemini API Key">
+          <i data-lucide="key"></i>
+          <span>Key</span>
+        </button>
+
         <button id="btn-toggle-mute" class="btn-nav" title="Toggle sound effects">
           <i data-lucide="volume-2"></i>
           <span>Sfx</span>
@@ -298,7 +303,29 @@
     </footer>
   </div>
 
+  <!-- API Key Settings Modal -->
+  <div id="key-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Gemini API Configuration</h3>
+        <button id="btn-close-modal" class="btn-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Provide your personal <strong>Gemini API Key</strong> to use Star on GitHub Pages. Your key is stored securely in your browser's local storage.</p>
+        <div class="input-group">
+          <input type="password" id="input-api-key" placeholder="AIzaSy...">
+          <button id="btn-save-key" class="btn-primary">Save Key</button>
+        </div>
+        <p class="modal-help-text">Don't have a key? Get one from <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>.</p>
+        <div class="key-status-row">
+          <span id="key-status-badge" class="status-badge inactive">No Key Configured</span>
+          <button id="btn-delete-key" class="btn-danger" style="display: none;">Remove Key</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Load script coordinating app logic -->
-  <script type="module" src="/app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
